@@ -7,6 +7,10 @@ Released as CC-Zero.
 import datetime
 import pywikibot
 from pywikibot.data import api
+from pywikibot import config
+
+config.put_throttle = 0
+config.maxlag = 999999999  # Don't worry about it
 
 class Defender:
     def __init__(self):
