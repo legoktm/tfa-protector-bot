@@ -77,7 +77,7 @@ class Defender:
                   'token': self.token,
                   'protections': 'move=sysop',
                   'expiry': expiry,
-                  'reason': 'Bot: Upcomping TFA',
+                  'reason': 'Upcomping TFA ([[WP:BOT|bot protection]])',
                   }
         req = api.Request(site=self.enwp, **params)
         data = req.submit()
