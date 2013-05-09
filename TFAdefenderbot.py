@@ -32,7 +32,7 @@ class Defender:
         req = api.Request(site=self.enwp, **params)
         data = req.submit()
         d = data['query']['pages'].values()[0]
-        #self.token = d['protecttoken']
+        self.token = d['protecttoken']
         self.prot_level = d
 
     def should_we_protect(self):
@@ -77,7 +77,7 @@ class Defender:
                   'token': self.token,
                   'protections': 'move=sysop',
                   'expiry': expiry,
-                  'reason': 'Upcomping TFA ([[WP:BOT|bot protection]])',
+                  'reason': 'Upcoming TFA ([[WP:BOT|bot protection]])',
                   }
         req = api.Request(site=self.enwp, **params)
         data = req.submit()
