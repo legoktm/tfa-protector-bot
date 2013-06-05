@@ -12,6 +12,7 @@ from pywikibot import config
 config.put_throttle = 0
 config.maxlag = 999999999  # Don't worry about it
 
+
 class Defender:
     def __init__(self):
         self.enwp = pywikibot.Site('en', 'wikipedia')
@@ -19,7 +20,6 @@ class Defender:
         self.today = datetime.date.today()
         self.tomorrow = self.today + datetime.timedelta(days=1)
         self.tmrw = datetime.datetime(self.tomorrow.year, self.tomorrow.month, self.tomorrow.day)
-
 
     def prot_status(self):
         #action=query&titles=Albert%20Einstein&prop=info&inprop=protection|talkid&format=jsonfm
@@ -39,22 +39,24 @@ class Defender:
         if not self.prot_level['protection']:
             print 'Unprotected. Will protect.'
             return True
-        move = False
+        self.move = None
+        self.edit = None
         for p in self.prot_level['protection']:
             if p['type'] == 'move':
-                move = p
-                break
+                self.move = p
+            elif p['type'] == 'edit':
+                self.edit = p
 
-        if not move:
+        if not self.move:
             print 'Not move protected. Will protect.'
             return True
-        if move['level'] != 'sysop':
+        if self.move['level'] != 'sysop':
             print 'Not sysop-protected.'
             return True
-        if move['expiry'] == 'infinity':
+        if self.move['expiry'] == 'infinity':
             print 'Indefinitely protect. Will skip.'
             return False
-        ts = pywikibot.Timestamp.fromISOformat(move['expiry'])
+        ts = pywikibot.Timestamp.fromISOformat(self.move['expiry'])
         if ts < self.tmrw:
             print 'Expires before it is off the main page. Will protect'
             return True
@@ -79,6 +81,9 @@ class Defender:
                   'expiry': expiry,
                   'reason': 'Upcoming TFA ([[WP:BOT|bot protection]])',
                   }
+        if self.edit:
+            params['protections'] += '|edit=sysop'
+            params['expiry'] += '|' + self.edit['expiry']
         req = api.Request(site=self.enwp, **params)
         data = req.submit()
         print data
