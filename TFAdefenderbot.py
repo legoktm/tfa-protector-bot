@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 """
 Copyright (C) 2013 Legoktm
 
@@ -12,87 +13,95 @@ from pywikibot import config
 config.put_throttle = 0
 config.maxlag = 999999999  # Don't worry about it
 
+enwp = pywikibot.Site('en', 'wikipedia')
+token = enwp.token(pywikibot.Page(enwp, 'Main Page'), 'protect')
 
-class Defender:
-    def __init__(self):
-        self.enwp = pywikibot.Site('en', 'wikipedia')
-        self.page = None
-        self.today = datetime.date.today()
-        self.tomorrow = self.today + datetime.timedelta(days=1)
-        self.tmrw = datetime.datetime(self.tomorrow.year, self.tomorrow.month, self.tomorrow.day)
 
-    def prot_status(self):
-        #action=query&titles=Albert%20Einstein&prop=info&inprop=protection|talkid&format=jsonfm
-        params = {'action': 'query',
-                  'titles': self.page.title(),
-                  'prop': 'info',
-                  'inprop': 'protection',
-                  'intoken': 'protect',
-                  }
-        req = api.Request(site=self.enwp, **params)
-        data = req.submit()
-        d = data['query']['pages'].values()[0]
-        self.token = d['protecttoken']
-        self.prot_level = d
-
-    def should_we_protect(self):
-        if not self.prot_level['protection']:
-            print 'Unprotected. Will protect.'
-            return True
-        self.move = None
-        self.edit = None
-        for p in self.prot_level['protection']:
-            if p['type'] == 'move':
-                self.move = p
-            elif p['type'] == 'edit':
-                self.edit = p
-
-        if not self.move:
-            print 'Not move protected. Will protect.'
-            return True
-        if self.move['level'] != 'sysop':
-            print 'Not sysop-protected.'
-            return True
-        if self.move['expiry'] == 'infinity':
-            print 'Indefinitely protect. Will skip.'
-            return False
-        ts = pywikibot.Timestamp.fromISOformat(self.move['expiry'])
-        if ts < self.tmrw:
-            print 'Expires before it is off the main page. Will protect'
-            return True
-        print 'Looks good to me. +2'
+def should_we_protect(p_status, tmrw):
+    if not p_status:
+        print 'Unprotected. Will protect.'
+        return True
+    move = p_status.get('move', None)
+    edit = p_status.get('edit', None)
+    if not move:
+        print 'Not move protected. Will protect.'
+        return True
+    if move['level'] != 'sysop':
+        print 'Not sysop-protected.'
+        return True
+    if move['expiry'] == 'infinity':
+        print 'Indefinitely protect. Will skip.'
         return False
+    ts = pywikibot.Timestamp.fromISOformat(move['expiry'])
+    if ts < tmrw:
+        print 'Expires before it is off the main page. Will protect'
+        return True
+    print 'Looks good to me. +2'
+    return False
 
-    def get_tfa(self):
+
+def protect(page, tmrw, p_status):
+    expiry = tmrw.strftime("%Y-%m-%dT%H:%M:%SZ")
+    params = {'action': 'protect',
+              'title': page.title(),
+              'token': token,
+              'protections': 'move=sysop',
+              'expiry': expiry,
+              'reason': 'Upcoming TFA ([[WP:BOT|bot protection]])',
+              }
+    if 'edit' in p_status:
+        params['protections'] += '|edit=' + p_status['edit']['level']
+        params['expiry'] += '|' + p_status['edit']['expiry']
+    req = api.Request(site=enwp, **params)
+    data = req.submit()
+    print data
+
+
+def prot_status(page):
+    #action=query&titles=Albert%20Einstein&prop=info&inprop=protection|talkid&format=jsonfm
+    params = {'action': 'query',
+              'titles': page.title(),
+              'prop': 'info',
+              'inprop': 'protection',
+              }
+    req = api.Request(site=enwp, **params)
+    data = req.submit()
+    d = data['query']['pages'].values()[0]
+    p = {}
+    if 'protection' in d:
+        for a in d['protection']:
+            p[a['type']] = a
+    return p
+
+
+def do_page(date):
+    date_plus_one = date + datetime.timedelta(days=1)
+    d_plus_one = datetime.datetime(date_plus_one.year, date_plus_one.month, date_plus_one.day)
+    d = datetime.datetime(date.year, date.month, date.day)
+    dt = d.strftime('%B %d, %Y').replace(' 0', ' ')  # Strip the preceding 0
+    pg = pywikibot.Page(enwp, 'Template:TFA title/' + dt)
+    if not pg.exists():
+        return None
+    if pg.isRedirectPage():
+        #do something
         pass
-        #Template:TFA title/April 21, 2013
-        dt = self.tmrw.strftime('%B %d, %Y').replace(' 0', ' ')  # Strip the preceding 0
-        pg = pywikibot.Page(self.enwp, 'Template:TFA title/' + dt)
-        title = pg.get().strip()
-        print title
-        self.page = pywikibot.Page(self.enwp, title)
+        return True
+    else:
+        p_status = prot_status(pg)
+        if should_we_protect(p_status, d_plus_one):
+            protect(pg, d_plus_one, p_status)
+            return True
 
-    def protect(self):
-        expiry = (self.tmrw + datetime.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
-        params = {'action': 'protect',
-                  'title': self.page.title(),
-                  'token': self.token,
-                  'protections': 'move=sysop',
-                  'expiry': expiry,
-                  'reason': 'Upcoming TFA ([[WP:BOT|bot protection]])',
-                  }
-        if self.edit:
-            params['protections'] += '|edit=sysop'
-            params['expiry'] += '|' + self.edit['expiry']
-        req = api.Request(site=self.enwp, **params)
-        data = req.submit()
-        print data
 
-    def run(self):
-        self.get_tfa()
-        self.prot_status()
-        if self.should_we_protect():
-            self.protect()
+def main():
+    d = datetime.date.today() + datetime.timedelta(days=1)
+    go = True
+    while go:
+        f = do_page(d)
+        if f is None:
+            go = False
+        d += datetime.timedelta(days=1)
+
 
 
 bot = Defender()
