@@ -113,5 +113,5 @@ def main():
 
 
 
-bot = Defender()
-bot.run()
+if __name__ == "__main__":
+    main()
