@@ -58,6 +58,9 @@ def protect(page, p_status, protect_this):
         params['protections'].append('{0}={1}'.format(p_type, protect_this[p_type]['level']))
         params['expiry'].append(protect_this[p_type]['expiry'].strftime("%Y-%m-%dT%H:%M:%SZ"))
     for p_type in p_status:
+        if 'cascade' in p_status[p_type]:
+            params['cascade'] = '1'  # send it back i guess?
+
         if p_type in protect_this:
             #dont try to protect what we want to change
             continue
@@ -66,9 +69,6 @@ def protect(page, p_status, protect_this):
             continue
         params['protections'] += '|{0}={1}'.format(p_type, p_status[p_type]['level'])
         params['expiry'] += '|' + p_status[p_type]['expiry']
-        if 'cascade' in p_status[p_type]:
-            params['cascade'] = '1'  # send it back i guess?
-
     req = api.Request(site=enwp, **params)
     data = req.submit()
     print data
