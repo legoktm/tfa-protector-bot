@@ -49,9 +49,14 @@ def protect(page, tmrw, p_status):
               'expiry': expiry,
               'reason': 'Upcoming TFA ([[WP:BOT|bot protection]])',
               }
-    if 'edit' in p_status:
-        params['protections'] += '|edit=' + p_status['edit']['level']
-        params['expiry'] += '|' + p_status['edit']['expiry']
+    for p_type in p_status:
+        if p_type == 'move':
+            continue
+        if 'source' in p_status[p_type]:
+            #skip cascading protection
+            continue
+        params['protections'] += '|{0}={1}'.format(p_type, p_status[p_type]['level'])
+        params['expiry'] += '|' + p_status[p_type]['expiry']
     req = api.Request(site=enwp, **params)
     data = req.submit()
     print data
