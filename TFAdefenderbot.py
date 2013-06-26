@@ -66,6 +66,9 @@ def protect(page, p_status, protect_this):
             continue
         params['protections'] += '|{0}={1}'.format(p_type, p_status[p_type]['level'])
         params['expiry'] += '|' + p_status[p_type]['expiry']
+        if 'cascade' in p_status[p_type]:
+            params['cascade'] = '1'  # send it back i guess?
+
     req = api.Request(site=enwp, **params)
     data = req.submit()
     print data
