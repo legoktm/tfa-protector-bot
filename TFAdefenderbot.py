@@ -82,14 +82,18 @@ def do_page(date):
     pg = pywikibot.Page(enwp, 'Template:TFA title/' + dt)
     if not pg.exists():
         return None
-    if pg.isRedirectPage():
+    title = pg.get()
+    if not title:
+        return None
+    tfa = pywikibot.Page(enwp, title)
+    if tfa.isRedirectPage():
         #do something
         pass
         return True
     else:
-        p_status = prot_status(pg)
+        p_status = prot_status(tfa)
         if should_we_protect(p_status, d_plus_one):
-            protect(pg, d_plus_one, p_status)
+            protect(tfa, d_plus_one, p_status)
             return True
 
 
