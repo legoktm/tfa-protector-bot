@@ -13,7 +13,10 @@ from pywikibot import config
 config.put_throttle = 0
 config.maxlag = 999999999  # Don't worry about it
 
-enwp = pywikibot.Site('en', 'wikipedia')
+account_name = 'Legoktm'
+
+enwp = pywikibot.Site('en', 'wikipedia', account_name)
+enwp.login()
 token = enwp.token(pywikibot.Page(enwp, 'Main Page'), 'protect')
 
 
@@ -69,9 +72,10 @@ def protect(page, p_status, protect_this):
             continue
         params['protections'] += '|{0}={1}'.format(p_type, p_status[p_type]['level'])
         params['expiry'] += '|' + p_status[p_type]['expiry']
-    req = api.Request(site=enwp, **params)
-    data = req.submit()
-    print data
+    print params
+    #req = api.Request(site=enwp, **params)
+    #data = req.submit()
+    #print data
 
 
 def prot_status(page):
@@ -97,14 +101,18 @@ def do_page(date):
     d = datetime.datetime(date.year, date.month, date.day)
     dt = d.strftime('%B %d, %Y').replace(' 0', ' ')  # Strip the preceding 0
     pg = pywikibot.Page(enwp, 'Template:TFA title/' + dt)
+    print pg
     if not pg.exists():
+        print str(pg) + ' doesnt exist.'
         return None
     title = pg.get()
     if not title:
+        print str(pg) + ' is empty.'
         return None
     tfa = pywikibot.Page(enwp, title)
     p_status = prot_status(tfa)
     if tfa.isRedirectPage():
+        print 'Uhoh, is a redirect.'
         real_tfa = tfa.getRedirectTarget()
         real_p_status = prot_status(real_tfa)
         protect_this_redirect = should_we_protect(p_status, d_plus_one, redirect=True)
@@ -119,6 +127,10 @@ def do_page(date):
         if protect_this:
             protect(tfa, d_plus_one, protect_this)
             return True
+        else:
+            print 'Already protected.'
+            print False
+    return True
 
 
 def main():
