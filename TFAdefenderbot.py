@@ -165,11 +165,16 @@ def do_page(date):
 def main():
     d = datetime.date.today() + datetime.timedelta(days=1)
     go = True
+    passed = False  # Whether we've passed the 35 day limit
     while go:
         f = do_page(d)
-        if f is None:
+        if f is None and passed:
             go = False
         d += datetime.timedelta(days=1)
+        if (d - datetime.date.today()).days > 35:
+            # Not all TFAs are scheduled in order, so look
+            # at least 35 days into the future.
+            passed = True
 
 
 
