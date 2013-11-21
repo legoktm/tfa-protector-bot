@@ -6,6 +6,7 @@ Copyright (C) 2013 Legoktm
 Released as CC-Zero.
 """
 import datetime
+import re
 import pywikibot
 from pywikibot.data import api
 from pywikibot import config
@@ -95,6 +96,27 @@ def prot_status(page):
     return p
 
 
+def extract_from_tfa(dt):
+    pg = pywikibot.Page(enwp, 'Wikipedia:Today\'s featured article/' + dt)
+    if not pg.exists():
+        return None
+    text = pg.get().strip()
+    if text == '{{TFAempty}}':
+        return None
+    # Stole these regexes from Anomie
+    m = re.search("'''\s*\[\[\s*([^|\]]+?)\s*(?:\|[^]]+)?\]\][a-z]*\s*'''", text)
+    if not m:
+        m = re.search("<b>\s*\[\[\s*([^|\]]+?)\s*(?:\|[^]]+)?\]\]\s*</b>", text)
+    if not m:
+        return None
+    title = m.group(1)
+    # Use the API to normalize it...
+    r = api.Request(site=enwp, action='query', titles=title)
+    data = r.submit()
+    title = data['query']['pages'].values()[0]['title']
+    return title
+
+
 def do_page(date):
     date_plus_one = date + datetime.timedelta(days=1)
     d_plus_one = datetime.datetime(date_plus_one.year, date_plus_one.month, date_plus_one.day)
@@ -102,10 +124,16 @@ def do_page(date):
     dt = d.strftime('%B %d, %Y').replace(' 0', ' ')  # Strip the preceding 0
     pg = pywikibot.Page(enwp, 'Template:TFA title/' + dt)
     print pg
+    title = None
     if not pg.exists():
         print str(pg) + ' doesnt exist.'
-        return None
-    title = pg.get()
+        print 'Checking for a TFA subpage...'
+        title = extract_from_tfa(dt)
+        if not title:
+            # bail
+            return None
+    if not title:
+        title = pg.get()
     if not title:
         print str(pg) + ' is empty.'
         return None
