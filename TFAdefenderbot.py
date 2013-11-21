@@ -154,7 +154,7 @@ def do_page(date):
     else:
         protect_this = should_we_protect(p_status, d_plus_one)
         if protect_this:
-            protect(tfa, d_plus_one, protect_this)
+            protect(tfa, p_status, protect_this)
             return True
         else:
             print 'Already protected.'
