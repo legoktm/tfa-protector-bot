@@ -64,7 +64,9 @@ def protect(page, p_status, protect_this):
     for p_type in p_status:
         if 'cascade' in p_status[p_type]:
             params['cascade'] = '1'  # send it back i guess?
-
+        if p_type == 'aft':
+            # bug 57389
+            continue
         if p_type in protect_this:
             #dont try to protect what we want to change
             continue
