@@ -56,7 +56,7 @@ def protect(page, p_status, protect_this):
               'token': token,
               'protections': [],  # pwb will convert these to a string later on
               'expiry': [],
-              'reason': 'Upcoming TFA ([[WP:BOT|bot protection]] - [[Wikipedia:Bots/Requests for approval/TFA Protector Bot|BRFA]])',
+              'reason': 'Upcoming TFA ([[WP:BOT|bot protection]])',
               }
     for p_type in protect_this:
         params['protections'].append('{0}={1}'.format(p_type, protect_this[p_type]['level']))
