@@ -71,8 +71,8 @@ def protect(page, p_status, protect_this):
         if 'source' in p_status[p_type]:
             #skip cascading protection
             continue
-        params['protections'] += '|{0}={1}'.format(p_type, p_status[p_type]['level'])
-        params['expiry'] += '|' + p_status[p_type]['expiry']
+        params['protections'].append('{0}={1}'.format(p_type, p_status[p_type]['level']))
+        params['expiry'].append(p_status[p_type]['expiry'])
     print params
     req = api.Request(site=enwp, **params)
     data = req.submit()
