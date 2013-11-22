@@ -14,7 +14,7 @@ from pywikibot import config
 config.put_throttle = 0
 config.maxlag = 999999999  # Don't worry about it
 
-account_name = 'Legoktm'
+account_name = 'TFA Protector Bot'
 
 enwp = pywikibot.Site('en', 'wikipedia', account_name)
 enwp.login()
