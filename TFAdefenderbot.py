@@ -11,16 +11,6 @@ import pywikibot
 from pywikibot.data import api
 from pywikibot import config
 
-config.put_throttle = 0
-config.maxlag = 999999999  # Don't worry about it
-
-account_name = 'TFA Protector Bot'
-
-enwp = pywikibot.Site('en', 'wikipedia', account_name)
-enwp.login()
-token = enwp.token(pywikibot.Page(enwp, 'Main Page'), 'protect')
-
-
 def should_we_protect(p_status, tmrw, redirect=False):
     #redirect is true if we should also check for edit protection.
     #will return a dict of {'type':{'level':'sysop','expiry':ts}}
@@ -181,4 +171,12 @@ def main():
 
 
 if __name__ == "__main__":
+    config.put_throttle = 0
+    config.maxlag = 999999999  # Don't worry about it
+
+    account_name = 'TFA Protector Bot'
+
+    enwp = pywikibot.Site('en', 'wikipedia', account_name)
+    enwp.login()
+    token = enwp.token(pywikibot.Page(enwp, 'Main Page'), 'protect')
     main()
