@@ -1,15 +1,20 @@
 #!/usr/bin/env python
-from __future__ import unicode_literals
 """
 Copyright (C) 2013 Legoktm
 
 Released as CC-Zero.
 """
+from __future__ import unicode_literals
 import datetime
+import os
 import re
+import time
 import pywikibot
 from pywikibot.data import api
 from pywikibot import config
+
+enwp = pywikibot.Site('en', 'wikipedia')
+
 
 def should_we_protect(p_status, tmrw, redirect=False):
     #redirect is true if we should also check for edit protection.
@@ -175,8 +180,14 @@ if __name__ == "__main__":
     config.maxlag = 999999999  # Don't worry about it
 
     account_name = 'TFA Protector Bot'
-
     enwp = pywikibot.Site('en', 'wikipedia', account_name)
     enwp.login()
     token = enwp.token(pywikibot.Page(enwp, 'Main Page'), 'protect')
     main()
+    fin = time.time()
+    if os.path.isdir(os.path.expanduser('~/public_html')):
+        with open(os.path.expanduser('~/public_html/lastrun.txt'), 'w') as f:
+            f.write(str(fin))
+        print 'Updated last run time.'
+    else:
+        print 'ERROR: COULD NOT UPDATE LAST RUN TIME!'
