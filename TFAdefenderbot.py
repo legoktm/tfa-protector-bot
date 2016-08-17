@@ -1,10 +1,21 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-Copyright (C) 2013 Legoktm
+Copyright (C) 2013 Kunal Mehta
 
-Released as CC-Zero.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from __future__ import unicode_literals
+
 import datetime
 import os
 import re
@@ -70,10 +81,10 @@ def protect(page, p_status, protect_this):
             continue
         params['protections'].append('{0}={1}'.format(p_type, p_status[p_type]['level']))
         params['expiry'].append(p_status[p_type]['expiry'])
-    print params
+    print(params)
     req = api.Request(site=enwp, **params)
     data = req.submit()
-    print data
+    print(data)
 
 
 def prot_status(page):
@@ -85,8 +96,8 @@ def prot_status(page):
               }
     req = api.Request(site=enwp, **params)
     data = req.submit()
-    d = data['query']['pages'].values()[0]
-    print d
+    d = list(data['query']['pages'].values())[0]
+    print(d)
     p = {}
     if 'protection' in d:
         for a in d['protection']:
@@ -111,7 +122,7 @@ def extract_from_tfa(dt):
     # Use the API to normalize it...
     r = api.Request(site=enwp, action='query', titles=title)
     data = r.submit()
-    title = data['query']['pages'].values()[0]['title']
+    title = list(data['query']['pages'].values())[0]['title']
     return title
 
 
@@ -121,11 +132,11 @@ def do_page(date):
     d = datetime.datetime(date.year, date.month, date.day)
     dt = d.strftime('%B %d, %Y').replace(' 0', ' ')  # Strip the preceding 0
     pg = pywikibot.Page(enwp, 'Template:TFA title/' + dt)
-    print pg
+    print(pg)
     title = None
     if not pg.exists():
-        print str(pg) + ' doesnt exist.'
-        print 'Checking for a TFA subpage...'
+        print(str(pg) + ' doesnt exist.')
+        print('Checking for a TFA subpage...')
         title = extract_from_tfa(dt)
         if not title:
             # bail
@@ -133,12 +144,12 @@ def do_page(date):
     if not title:
         title = pg.get()
     if not title:
-        print str(pg) + ' is empty.'
+        print(str(pg) + ' is empty.')
         return None
     tfa = pywikibot.Page(enwp, title)
     p_status = prot_status(tfa)
     if tfa.isRedirectPage():
-        print 'Uhoh, is a redirect.'
+        print('Uhoh, is a redirect.')
         real_tfa = tfa.getRedirectTarget()
         real_p_status = prot_status(real_tfa)
         protect_this_redirect = should_we_protect(p_status, d_plus_one, redirect=True)
@@ -154,8 +165,8 @@ def do_page(date):
             protect(tfa, p_status, protect_this)
             return True
         else:
-            print 'Already protected.'
-            print False
+            print('Already protected.')
+            print(False)
     return True
 
 
@@ -188,6 +199,6 @@ if __name__ == "__main__":
     if os.path.isdir(os.path.expanduser('~/public_html')):
         with open(os.path.expanduser('~/public_html/lastrun.txt'), 'w') as f:
             f.write(str(fin))
-        print 'Updated last run time.'
+        print('Updated last run time.')
     else:
-        print 'ERROR: COULD NOT UPDATE LAST RUN TIME!'
+        print('ERROR: COULD NOT UPDATE LAST RUN TIME!')
