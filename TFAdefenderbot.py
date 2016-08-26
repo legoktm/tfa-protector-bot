@@ -81,10 +81,10 @@ def protect(page, p_status, protect_this):
             continue
         params['protections'].append('{0}={1}'.format(p_type, p_status[p_type]['level']))
         params['expiry'].append(p_status[p_type]['expiry'])
-    print(params)
+    pywikibot.output(params)
     req = api.Request(site=enwp, **params)
     data = req.submit()
-    print(data)
+    pywikibot.output(data)
 
 
 def prot_status(page):
@@ -97,7 +97,7 @@ def prot_status(page):
     req = api.Request(site=enwp, **params)
     data = req.submit()
     d = list(data['query']['pages'].values())[0]
-    print(d)
+    pywikibot.output(d)
     p = {}
     if 'protection' in d:
         for a in d['protection']:
@@ -132,11 +132,11 @@ def do_page(date):
     d = datetime.datetime(date.year, date.month, date.day)
     dt = d.strftime('%B %d, %Y').replace(' 0', ' ')  # Strip the preceding 0
     pg = pywikibot.Page(enwp, 'Template:TFA title/' + dt)
-    print(pg)
+    pywikibot.output(pg)
     title = None
     if not pg.exists():
-        print(str(pg) + ' doesnt exist.')
-        print('Checking for a TFA subpage...')
+        pywikibot.output(str(pg) + ' doesnt exist.')
+        pywikibot.output('Checking for a TFA subpage...')
         title = extract_from_tfa(dt)
         if not title:
             # bail
@@ -144,12 +144,12 @@ def do_page(date):
     if not title:
         title = pg.get()
     if not title:
-        print(str(pg) + ' is empty.')
+        pywikibot.output(str(pg) + ' is empty.')
         return None
     tfa = pywikibot.Page(enwp, title)
     p_status = prot_status(tfa)
     if tfa.isRedirectPage():
-        print('Uhoh, is a redirect.')
+        pywikibot.output('Uhoh, is a redirect.')
         real_tfa = tfa.getRedirectTarget()
         real_p_status = prot_status(real_tfa)
         protect_this_redirect = should_we_protect(p_status, d_plus_one, redirect=True)
@@ -165,8 +165,8 @@ def do_page(date):
             protect(tfa, p_status, protect_this)
             return True
         else:
-            print('Already protected.')
-            print(False)
+            pywikibot.output('Already protected.')
+            pywikibot.output(False)
     return True
 
 
@@ -199,6 +199,6 @@ if __name__ == "__main__":
     if os.path.isdir(os.path.expanduser('~/public_html')):
         with open(os.path.expanduser('~/public_html/lastrun.txt'), 'w') as f:
             f.write(str(fin))
-        print('Updated last run time.')
+        pywikibot.output('Updated last run time.')
     else:
-        print('ERROR: COULD NOT UPDATE LAST RUN TIME!')
+        pywikibot.output('ERROR: COULD NOT UPDATE LAST RUN TIME!')
