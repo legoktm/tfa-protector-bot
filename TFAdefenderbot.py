@@ -28,8 +28,8 @@ enwp = pywikibot.Site('en', 'wikipedia')
 
 
 def should_we_protect(p_status, tmrw, redirect=False):
-    #redirect is true if we should also check for edit protection.
-    #will return a dict of {'type':{'level':'sysop','expiry':ts}}
+    # redirect is true if we should also check for edit protection.
+    # will return a dict of {'type':{'level':'sysop','expiry':ts}}
     return_this = {}
     move = p_status.get('move', None)
     if move:
@@ -38,7 +38,7 @@ def should_we_protect(p_status, tmrw, redirect=False):
         elif move['expiry'] != 'infinity':
             ts = pywikibot.Timestamp.fromISOformat(move['expiry'])
             if ts < tmrw:
-                #expires before off main page.
+                # expires before off main page.
                 return_this['move'] = {'level': 'sysop', 'expiry': tmrw}
     else:
         return_this['move'] = {'level': 'sysop', 'expiry': tmrw}
@@ -65,7 +65,7 @@ def protect(page, p_status, protect_this):
               'reason': 'Upcoming TFA ([[WP:BOT|bot protection]])',
               }
     for p_type in protect_this:
-        params['protections'].append('{0}={1}'.format(p_type, protect_this[p_type]['level']))
+        params['protections'].append('{}={}'.format(p_type, protect_this[p_type]['level']))
         params['expiry'].append(protect_this[p_type]['expiry'].strftime("%Y-%m-%dT%H:%M:%SZ"))
     for p_type in p_status:
         if 'cascade' in p_status[p_type]:
@@ -74,12 +74,12 @@ def protect(page, p_status, protect_this):
             # bug 57389
             continue
         if p_type in protect_this:
-            #dont try to protect what we want to change
+            # dont try to protect what we want to change
             continue
         if 'source' in p_status[p_type]:
-            #skip cascading protection
+            # skip cascading protection
             continue
-        params['protections'].append('{0}={1}'.format(p_type, p_status[p_type]['level']))
+        params['protections'].append('{}={}'.format(p_type, p_status[p_type]['level']))
         params['expiry'].append(p_status[p_type]['expiry'])
     pywikibot.output(params)
     req = api.Request(site=enwp, **params)
@@ -88,7 +88,7 @@ def protect(page, p_status, protect_this):
 
 
 def prot_status(page):
-    #action=query&titles=Albert%20Einstein&prop=info&inprop=protection|talkid&format=jsonfm
+    # action=query&titles=Albert%20Einstein&prop=info&inprop=protection|talkid&format=jsonfm
     params = {'action': 'query',
               'titles': page.title(),
               'prop': 'info',
@@ -113,9 +113,9 @@ def extract_from_tfa(dt):
     if text == '{{TFAempty}}':
         return None
     # Stole these regexes from Anomie
-    m = re.search("'''\s*\[\[\s*([^|\]]+?)\s*(?:\|[^]]+)?\]\][a-z]*\s*'''", text)
+    m = re.search(r"'''\s*\[\[\s*([^|\]]+?)\s*(?:\|[^]]+)?\]\][a-z]*\s*'''", text)
     if not m:
-        m = re.search("<b>\s*\[\[\s*([^|\]]+?)\s*(?:\|[^]]+)?\]\]\s*</b>", text)
+        m = re.search(r"<b>\s*\[\[\s*([^|\]]+?)\s*(?:\|[^]]+)?\]\]\s*</b>", text)
     if not m:
         return None
     title = m.group(1)
@@ -183,7 +183,6 @@ def main():
             # Not all TFAs are scheduled in order, so look
             # at least 35 days into the future.
             passed = True
-
 
 
 if __name__ == "__main__":
