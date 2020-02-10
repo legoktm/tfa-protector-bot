@@ -24,7 +24,7 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage
 .tox
-nosetests.xml
+htmlcov/
 
 # Translations
 *.mo
@@ -33,3 +33,8 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Pywikibot
+apicache-py3/
+pywikibot.lwp
+throttle.ctrl
