@@ -110,10 +110,13 @@ def extract_from_tfa(dt):
         return None
     title = m.group(1)
     # Use the API to normalize it...
-    r = api.Request(site=enwp, action='query', titles=title)
+    r = api.Request(site=enwp, parameters={
+        "action": "query",
+        "titles": title,
+        "formatversion": "2"
+    })
     data = r.submit()
-    title = list(data['query']['pages'].values())[0]['title']
-    return title
+    return data['query']['pages'][0]['title']
 
 
 def do_page(date):
