@@ -82,7 +82,7 @@ def protect(page, p_status, protect_this):
         params['protections'].append('{}={}'.format(p_type, p_status[p_type]['level']))
         params['expiry'].append(p_status[p_type]['expiry'])
     pywikibot.output(params)
-    req = api.Request(site=enwp, **params)
+    req = api.Request(site=enwp, parameters=params)
     data = req.submit()
     pywikibot.output(data)
 
