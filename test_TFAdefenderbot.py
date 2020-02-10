@@ -41,3 +41,16 @@ def test_prot_status(page, expected):
     pg = pywikibot.Page(TFAdefenderbot.enwp, page)
     status = TFAdefenderbot.prot_status(pg)
     assert status == expected
+
+
+@pytest.mark.parametrize('dt,expected', (
+        ('February 29, 2020', 'Zoo TV Tour'),
+        # Case normalization
+        ('February 5, 2020', 'Mosaics of Delos'),
+        # Unicode (broken)
+        pytest.param('February 6, 2020', 'SMS Zähringen', marks=pytest.mark.xfail),
+        # Italics
+        ('February 26, 2020', 'The Cabinet of Dr. Caligari'),
+))
+def test_extract_from_tfa(dt, expected):
+    assert TFAdefenderbot.extract_from_tfa(dt) == expected
