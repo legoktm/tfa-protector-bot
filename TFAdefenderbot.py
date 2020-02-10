@@ -88,20 +88,10 @@ def protect(page, p_status, protect_this):
 
 
 def prot_status(page):
-    # action=query&titles=Albert%20Einstein&prop=info&inprop=protection|talkid&format=jsonfm
-    params = {'action': 'query',
-              'titles': page.title(),
-              'prop': 'info',
-              'inprop': 'protection',
-              }
-    req = api.Request(site=enwp, **params)
-    data = req.submit()
-    d = list(data['query']['pages'].values())[0]
-    pywikibot.output(d)
     p = {}
-    if 'protection' in d:
-        for a in d['protection']:
-            p[a['type']] = a
+    for type_, info in page.protection().items():
+        level, expiry = info
+        p[type_] = {'type': type_, 'level': level, 'expiry': expiry}
     return p
 
 
