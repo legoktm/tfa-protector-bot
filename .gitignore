@@ -38,3 +38,8 @@ htmlcov/
 apicache-py3/
 pywikibot.lwp
 throttle.ctrl
+
+
+# Added by cargo
+/target
+auth.toml
