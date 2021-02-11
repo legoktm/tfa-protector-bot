@@ -252,9 +252,9 @@ async fn extract_tfa_title(day: Date<Utc>) -> Result<String> {
     // Return the first bolded link
     for bold in code.select("b").iter() {
         // unwrap: We know that <b> tags turn into generic nodes
-        for link in bold.as_generic().unwrap().filter_links()?.iter() {
-            // TOOD: move "./" stripping to parsoid-rs
-            return Ok(link.target().trim_start_matches("./").to_string());
+        let links = bold.as_generic().unwrap().filter_links();
+        if !links.is_empty() {
+            return Ok(links[0].pretty_target());
         }
     }
     Err(anyhow!("could not find title for {}", page))

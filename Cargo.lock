@@ -1022,9 +1022,9 @@ dependencies = [
 
 [[package]]
 name = "parsoid"
-version = "0.4.1"
+version = "0.5.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c25a1fc67dbe3490317b8277b98f05f3caf5bf4ab0724b350a637e816588b4e6"
+checksum = "cc67d11931f61492b5305671ea2707908d37fbd7f15f40896689ff72715d0d4a"
 dependencies = [
  "indexmap",
  "kuchiki",
