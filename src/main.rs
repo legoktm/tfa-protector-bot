@@ -25,7 +25,8 @@ use mediawiki::{
 use serde::Deserialize;
 use std::collections::HashMap;
 
-const USER_AGENT: &str = toolforge::user_agent!("tfaprotbot");
+const USER_AGENT: &str =
+    "https://en.wikipedia.org/wiki/User:TFA_Protector_Bot tfaprotbot-rs";
 
 /// Login information, stored in auth.toml
 #[derive(Deserialize)]
