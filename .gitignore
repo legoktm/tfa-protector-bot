@@ -43,3 +43,4 @@ throttle.ctrl
 # Added by cargo
 /target
 auth.toml
+*.log

@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 use anyhow::{anyhow, Result};
 use chrono::prelude::*;
 use chrono::Duration;
+use log::{debug, error, info};
 use mediawiki::{
     api::Api,
     page::{Page, PageError},
@@ -43,16 +44,16 @@ async fn mwapi() -> Result<Api> {
     let path = {
         let first = std::path::Path::new("auth.toml");
         if first.exists() {
-            first
+            first.to_path_buf()
         } else {
             dirs_next::home_dir()
-                .ok_or_else(|err| anyhow!("Cannot find home directory"))?
+                .ok_or_else(|| anyhow!("Cannot find home directory"))?
                 .join("auth.toml")
         }
     };
-    println!("Reading credentials from {:?}", path);
+    debug!("Reading credentials from {:?}", path);
     let auth: Auth = toml::from_str(&std::fs::read_to_string(path)?)?;
-    println!("Logging in as {}", auth.username);
+    info!("Logging in as {}", auth.username);
     api.login(auth.username, auth.password).await?;
     Ok(api)
 }
@@ -149,10 +150,10 @@ async fn handle_page(
         }
     }
     if move_protected && (!redirect || edit_protected) {
-        println!("{} is already protected", name);
+        info!("{} is already protected", name);
         return Ok(());
     }
-    println!("{} needs to be protected!", name);
+    info!("{} needs to be protected!", name);
 
     let mut protections = vec![];
     let mut expiry = vec![];
@@ -217,7 +218,7 @@ async fn handle_page(
     match result.get("error") {
         Some(errors) => Err(anyhow!(serde_json::to_string(errors)?)),
         None => {
-            println!("Successfully protected {}", &name);
+            info!("Successfully protected {}", &name);
             Ok(())
         }
     }
@@ -234,7 +235,7 @@ async fn get_tfa_title(day: Date<Utc>, api: &Api) -> Result<String> {
         Ok(text) => return Ok(text),
         // Nothing, keep trying
         Err(PageError::Missing(title)) => {
-            println!(
+            debug!(
                 "{} didn't exist, will check TFA now",
                 title.full_pretty(&api).unwrap()
             )
@@ -270,7 +271,32 @@ async fn extract_tfa_title(day: Date<Utc>) -> Result<String> {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
+    use flexi_logger::{
+        opt_format, Age, Cleanup, Criterion, Duplicate, Logger, Naming,
+    };
+    let logger = Logger::with_str("info, tfa_protector_bot=debug")
+        .log_to_file()
+        .duplicate_to_stdout(Duplicate::Info)
+        .format(opt_format)
+        .suppress_timestamp()
+        .append()
+        .use_buffering(true)
+        .rotate(
+            Criterion::Age(Age::Day),
+            Naming::Timestamps,
+            Cleanup::KeepLogFiles(30),
+        )
+        .start()
+        .unwrap();
+    match run().await {
+        Ok(_) => info!("Finished successfully"),
+        Err(e) => error!("Error: {}", e.to_string()),
+    };
+    logger.shutdown();
+}
+
+async fn run() -> Result<()> {
     let now = Utc::today();
     let mut api = mwapi().await?;
     for ahead in 1..35 {
@@ -278,8 +304,8 @@ async fn main() -> Result<()> {
         let text = match get_tfa_title(day, &api).await {
             Ok(text) => text,
             Err(e) => {
-                println!("{}", e.to_string());
-                println!(
+                debug!("{}", e.to_string());
+                info!(
                     "{} is missing, skipping",
                     day.format("%B %-d, %Y").to_string()
                 );
@@ -288,7 +314,7 @@ async fn main() -> Result<()> {
         };
         match get_redirect_target(&text, &api).await? {
             Some(target) => {
-                println!("{} redirects to {}", &text, &target);
+                info!("{} redirects to {}", &text, &target);
                 handle_page(&text, day, &mut api, true).await?;
                 handle_page(&target, day, &mut api, false).await?;
             }
