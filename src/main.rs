@@ -40,12 +40,20 @@ async fn mwapi() -> Result<Api> {
     let mut api = Api::new("https://en.wikipedia.org/w/api.php").await?;
     api.set_user_agent(USER_AGENT);
     api.set_maxlag(Some(999999999)); // Don't worry about it
-    let path = std::path::Path::new("auth.toml");
-    if path.exists() {
-        let auth: Auth = toml::from_str(&std::fs::read_to_string(path)?)?;
-        println!("Logging in as {}", auth.username);
-        api.login(auth.username, auth.password).await?;
-    }
+    let path = {
+        let first = std::path::Path::new("auth.toml");
+        if first.exists() {
+            first
+        } else {
+            dirs_next::home_dir()
+                .ok_or_else(|err| anyhow!("Cannot find home directory"))?
+                .join("auth.toml")
+        }
+    };
+    println!("Reading credentials from {:?}", path);
+    let auth: Auth = toml::from_str(&std::fs::read_to_string(path)?)?;
+    println!("Logging in as {}", auth.username);
+    api.login(auth.username, auth.password).await?;
     Ok(api)
 }
 
