@@ -335,22 +335,22 @@ mod tests {
     #[tokio::test]
     async fn test_extract_tfa_title() {
         assert_eq!(
-            "Zoo_TV_Tour".to_string(),
+            "Zoo TV Tour".to_string(),
             extract_tfa_title(Utc.ymd(2020, 02, 29)).await.unwrap()
         );
         // Case normalization
         assert_eq!(
-            "Mosaics_of_Delos".to_string(),
+            "Mosaics of Delos".to_string(),
             extract_tfa_title(Utc.ymd(2020, 02, 5)).await.unwrap()
         );
         // Unicode (was broken in Python)
         assert_eq!(
-            "SMS_Zähringen".to_string(),
+            "SMS Zähringen".to_string(),
             extract_tfa_title(Utc.ymd(2020, 02, 6)).await.unwrap()
         );
         // Italics
         assert_eq!(
-            "The_Cabinet_of_Dr._Caligari".to_string(),
+            "The Cabinet of Dr. Caligari".to_string(),
             extract_tfa_title(Utc.ymd(2020, 02, 26)).await.unwrap()
         );
     }
