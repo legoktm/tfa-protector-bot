@@ -36,11 +36,16 @@ struct Auth {
     password: String,
 }
 
-/// Get an `Api` instance
 async fn mwapi() -> Result<Api> {
     let mut api = Api::new("https://en.wikipedia.org/w/api.php").await?;
     api.set_user_agent(USER_AGENT);
     api.set_maxlag(Some(999999999)); // Don't worry about it
+    Ok(api)
+}
+
+/// Get a logged-in `Api` instance
+async fn mwapi_authed() -> Result<Api> {
+    let mut api = mwapi().await?;
     let path = {
         let first = std::path::Path::new("auth.toml");
         if first.exists() {
@@ -298,7 +303,7 @@ async fn main() {
 
 async fn run() -> Result<()> {
     let now = Utc::today();
-    let mut api = mwapi().await?;
+    let mut api = mwapi_authed().await?;
     for ahead in 1..35 {
         let day = now + Duration::days(ahead);
         let text = match get_tfa_title(day, &api).await {
