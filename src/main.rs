@@ -278,7 +278,7 @@ async fn extract_tfa_title(day: Date<Utc>) -> Result<String> {
 #[tokio::main]
 async fn main() {
     use flexi_logger::{
-        opt_format, Age, Cleanup, Criterion, Duplicate, Logger, Naming,
+        opt_format, Cleanup, Criterion, Duplicate, Logger, Naming,
     };
     let logger = Logger::with_str("info, tfa_protector_bot=debug")
         .log_to_file()
@@ -288,7 +288,7 @@ async fn main() {
         .append()
         .use_buffering(true)
         .rotate(
-            Criterion::Age(Age::Day),
+            Criterion::Size(5_000_000),
             Naming::Timestamps,
             Cleanup::KeepLogFiles(30),
         )
